@@ -1,0 +1,37 @@
+# Version control
+.git/
+.gitignore
+.github/
+
+# Python caches
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.hypothesis/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual envs
+.venv/
+venv/
+env/
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+*.swp
+
+# Generated artefacts that should not enter the image
+*.png
+*.mp4
+demo/output/
+docs/
+tests/
+
+# Already baked in via curl in the Dockerfile
+models/

@@ -1,0 +1,176 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "chromatic"
+version = "0.1.0"
+description = "Multi-modal liveness detection for deepfake-resistant identity verification."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+authors = [{ name = "Chromatic Contributors" }]
+keywords = [
+    "liveness-detection", "anti-spoofing", "deepfake-detection",
+    "rPPG", "biometrics", "kyc", "identity-verification",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Image Recognition",
+    "Topic :: Security",
+]
+
+dependencies = [
+    "numpy>=1.24,<3",
+    "scipy>=1.10",
+    "opencv-python>=4.8",
+    "mediapipe>=0.10.9",
+    "matplotlib>=3.7",
+]
+
+[project.optional-dependencies]
+api = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.27",
+    "pyjwt>=2.8",
+    "python-multipart>=0.0.9",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "pytest-asyncio>=0.23",
+    "hypothesis>=6.95",
+    "ruff>=0.4",
+    "mypy>=1.9",
+    "bandit>=1.7",
+    "types-Pillow",
+    "httpx>=0.27",
+]
+
+[project.urls]
+Homepage = "https://github.com/REPLACE_OWNER/chromatic"
+Issues = "https://github.com/REPLACE_OWNER/chromatic/issues"
+Documentation = "https://github.com/REPLACE_OWNER/chromatic/tree/main/docs"
+
+[tool.setuptools]
+package-dir = { "" = "src" }
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+# -----------------------------------------------------------------------------
+# Ruff — fast linter + formatter
+# -----------------------------------------------------------------------------
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+src = ["src", "tests", "demo"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W",      # pycodestyle / pyflakes
+    "I",                 # isort
+    "B",                 # bugbear
+    "UP",                # pyupgrade
+    "SIM",               # simplify
+    "S",                 # bandit-style security
+    "RUF",               # ruff-specific
+    "PL",                # pylint
+    "PTH",               # pathlib
+]
+ignore = [
+    "PLR0913",   # too many arguments — fine for analyser classes
+    "PLR2004",   # magic numbers — common in signal processing
+    "S101",      # assert used — fine in tests
+    "E501",      # line length handled by formatter
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "S105", "S106", "B017", "F841"]
+# Demos are visualisation scripts that intentionally have long render functions
+# (each draws many panels) and print to stdout for user feedback.
+"demo/**" = [
+    "S101", "PLR2004", "T201",
+    "PLR0911", "PLR0912", "PLR0915",  # long render() / run() are deliberate
+    "B905",                            # zip(strict=...) not load-bearing in demos
+    "SIM108",                          # explicit if/else > ternary for clarity
+    "RUF001", "RUF002", "RUF003",      # docstrings may contain em/en-dashes
+]
+# The API server orchestrates many concerns in one place; we keep it readable
+# rather than aggressively decomposed.
+"src/chromatic/api/server.py" = ["PLR0911", "PLR0912", "PLR0915"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# -----------------------------------------------------------------------------
+# Mypy — gradual typing
+# -----------------------------------------------------------------------------
+[tool.mypy]
+python_version = "3.10"
+files = ["src", "tests"]
+strict_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_unreachable = true
+no_implicit_optional = true
+disallow_untyped_defs = false   # set true once full coverage is achieved
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = ["cv2", "mediapipe.*", "scipy.*"]
+ignore_missing_imports = true
+
+# -----------------------------------------------------------------------------
+# Pytest
+# -----------------------------------------------------------------------------
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+addopts = [
+    "-ra",                  # show short summary of all non-pass outcomes
+    "--strict-markers",     # error on unknown markers
+    "--strict-config",
+    "--cov=chromatic",
+    "--cov-report=term-missing",
+    "--cov-report=xml",
+    "--cov-fail-under=70",
+]
+markers = [
+    "integration: end-to-end tests that use the full pipeline",
+    "security: tests targeting security controls",
+    "slow: tests > 1 second",
+]
+filterwarnings = [
+    "error",
+    "ignore::DeprecationWarning",   # third-party libs only
+    "ignore::UserWarning",
+]
+
+[tool.coverage.run]
+branch = true
+source = ["chromatic"]
+omit = ["src/chromatic/api/*"]   # API tested via integration suite
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
+
+# -----------------------------------------------------------------------------
+# Bandit — security linting
+# -----------------------------------------------------------------------------
+[tool.bandit]
+exclude_dirs = ["tests", "demo"]
+skips = ["B101"]   # assert_used — irrelevant outside tests

@@ -1,0 +1,13 @@
+# Development & test dependencies.
+-r requirements.txt
+
+pytest>=8.0
+pytest-cov>=4.1
+pytest-asyncio>=0.23
+hypothesis>=6.95
+httpx>=0.27
+
+ruff>=0.4
+mypy>=1.9
+bandit>=1.7
+pre-commit>=3.6

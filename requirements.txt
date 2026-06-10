@@ -1,0 +1,14 @@
+# Runtime dependencies for Nexus Liveness.
+# Versions pinned for reproducibility; bump via Dependabot.
+
+numpy>=1.24,<3
+scipy>=1.10
+opencv-python>=4.8
+mediapipe>=0.10.9
+matplotlib>=3.7
+
+# API extras (install with `pip install -e ".[api]"`)
+fastapi>=0.110
+uvicorn[standard]>=0.27
+pyjwt>=2.8
+python-multipart>=0.0.9
